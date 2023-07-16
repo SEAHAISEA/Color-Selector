@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+    .sliders_color {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .input_hex {
+        -webkit-appearance: none;
+        margin: 1px 0;
+        width: 200px;
+        position: relative;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .color-preview {
+        width: 28px;
+        height: 28px;
+        background-color: #ff0000;
+        border-radius: 5px;
+    }
+
+    .myFlex {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="myFlex">
+        <div class="myFlex" style="margin-top: 50px;width: 220px;height: 210px;background-color: #aaa;border-radius: 3px;">
+            <div>
+                <div class="sliders_color">
+                    <span>色相Hue</span>
+                    <input class="input_hex" id="hue" type="range" min="0" max="360" step="1" name="hue" class="hue-input" data-hue="0" style="background-image: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);">
+                    <span>亮度Brightness</span>
+                    <input class="input_hex" id="brightness" type="range" min="0" max="1" step="0.01" name="brightness" class="bright-input" data-bright="0" style="background-image: linear-gradient(to right,#808080, #ff0000)">
+                    <span>饱和度Saturation</span>
+                    <input class="input_hex" id="saturation" type="range" min="0" max="1" step="0.01" name="saturation" class="sat-input" data-sat="0" style="background-image: linear-gradient(to right,#000000, #ff0000, #ffffff);">
+                </div>
+                <!--  -->
+                <div class="" style="display: flex;align-items: center;margin-top: 30px;">
+                    <div class="color-preview"></div>
+                    <div style="margin-left: 5px">#</div>
+                    <input type="text" id="color-input" style="width: 100px;height:20px;margin-left: 1px" value="FF0000">
+                    <button onclick="confirmColor()" style="width: 44px;height: 28px;margin-left: 5px">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="chroma.min.js"></script>
+    <script type="text/javascript">
+    let sliders_hue = document.getElementById("hue");
+    let sliders_brightness = document.getElementById("brightness");
+    let sliders_saturation = document.getElementById("saturation");
+
+    sliders_hue.addEventListener("input", hslControls);
+    sliders_brightness.addEventListener("input", hslControls);
+    sliders_saturation.addEventListener("input", hslControls);
+
+
+    function hslControls(e) {
+        let sliders = e.target.parentElement.querySelectorAll('input[type="range"]');
+        const hue = sliders[0];
+        const brightness = sliders[1];
+        const saturation = sliders[2];
+        const bgColor = '#ff0000';
+        let color = chroma(bgColor)
+            .set("hsl.s", saturation.value)
+            .set("hsl.l", brightness.value)
+            .set("hsl.h", hue.value);
+        colorizeSliders(color, hue, brightness, saturation);
+    }
+
+    function colorizeSliders(color, hue, brightness, saturation) {
+        let colorPreview = document.querySelector(".color-preview");
+        let colorInput = document.getElementById("color-input");
+        let get_hex = chroma(color).hex();
+
+        colorPreview.style.backgroundColor = get_hex;
+        colorInput.value = get_hex.replace(/#/g, "").toUpperCase();
+        //Scale Saturation
+        const noSat = color.set("hsl.s", 0);
+        const fullSat = color.set("hsl.s", 1);
+        const scaleSat = chroma.scale([noSat, color, fullSat]);
+        //Scale Brightness
+        const midBright = color.set("hsl.l", 0.5);
+        const scaleBright = chroma.scale(["black", midBright, "white"]);
+        //Update Input Colors
+        saturation.style.backgroundImage = `linear-gradient(to right,${scaleSat(0)}, ${scaleSat(1)})`;
+        brightness.style.backgroundImage = `linear-gradient(to right,${scaleBright(0)},${scaleBright(0.5)} ,${scaleBright(1)})`;
+    }
+
+
+    function confirmColor() {
+        let colorInput = document.getElementById("color-input");
+        let colorPreview = document.querySelector(".color-preview");
+        let colorRegex = /^([0-9a-fA-F]{3}){1,2}$/;
+        let colorCode = colorInput.value;
+        // 使用正则表达式验证颜色代码
+        if (colorRegex.test(colorCode)) {
+            colorPreview.style.backgroundColor = "#" + colorCode;
+            colorPreview.setAttribute("data-color", colorCode);
+        } else {
+            alert("请输入有效的颜色代码！");
+        }
+    }
+    </script>
+</body>
+
+</html>
